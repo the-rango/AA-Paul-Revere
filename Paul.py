@@ -8,10 +8,10 @@ import urllib
 from sendgrid.helpers.mail import *
 import boto3
 
-TERM = '2019-14'
+########## Change Term ##########
+TERM = '2019-92'
 WEBSOC = 'https://www.reg.uci.edu/perl/WebSoc?'
-TINYURL="http://tinyurl.com/api-create.php"
-BATCH_SIZE = 8
+BATCH_SIZE = 8 # Any larger, the field gets cut off and doesn't search for the ones that are cut off
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 aws = boto3.client(
@@ -20,8 +20,39 @@ aws = boto3.client(
     aws_secret_access_key=config.AWS_SECRECTKEY,
     region_name="us-east-1"
 )
-
 TINY_URL = "http://tinyurl.com/api-create.php"
+sg = sendgrid.SendGridAPIClient(config.SENDGRID_API_KEY)
+from_email = Email("AntAlmanac@gmail.com")
+qa_email = Email(config.QA_EMAIL)
+EMAIL_SUBJECT = "[AntAlmanac Notifications] Space Just Opened Up"
+
+##helpers
+def fetch_statuses(targets):
+    statuses = {code:None for code in targets} #is statuses even a word in english? | initialize status values
+
+    iter = targets.__iter__()
+    for i in range(len(targets)//BATCH_SIZE + 1):
+        codes = set()
+        for _ in range(BATCH_SIZE):
+            try:
+                codes.add(next(iter))
+            except: #Expecting a StopIteration
+                break
+
+        # get status values for these codes
+        fields = [('YearTerm',TERM),('CourseCodes',', '.join(codes)),('ShowFinals',0),('ShowComments',0),('CancelledCourses','Include')]
+        url = WEBSOC + urllib.parse.urlencode(fields)
+        # print(url)
+
+        sp = bs.BeautifulSoup(requests.get(url, headers=HEADERS).content, 'lxml')
+
+        for row in sp.find_all('tr'):
+            cells = row.find_all('td')
+            if len(cells) > 14 and cells[0].text in statuses:
+                code = cells[0].text
+                statuses[code] = cells[-1].text
+
+    return statuses
 
 def shorten(long_url):
     try:
@@ -36,11 +67,7 @@ def shorten(long_url):
 
 # initialize senders
 while 1:
-    print("run")
-    sg = sendgrid.SendGridAPIClient(config.SENDGRID_API_KEY)
-    from_email = Email("AntAlmanac@gmail.com")
-    qa_email = Email(config.QA_EMAIL)
-
+    # print("run")
     db = pymongo.MongoClient(config.MONGODB_URI).get_database()
 
     # initialize variables...
@@ -50,34 +77,6 @@ while 1:
         emails[code] = course['emails']
         nums[code] = course['nums']
         names[code] = course['name']
-
-    ##helpers
-    def fetch_statuses(targets):
-        statuses = {code:None for code in targets} #is statuses even a word in english? | initialize status values
-
-        iter = targets.__iter__()
-        for i in range(len(targets)//BATCH_SIZE + 1):
-            codes = set()
-            for _ in range(BATCH_SIZE):
-                try:
-                    codes.add(next(iter))
-                except: #Expecting a StopIteration
-                    break
-
-            # get status values for these codes
-            fields = [('YearTerm',TERM),('CourseCodes',', '.join(codes)),('ShowFinals',0),('ShowComments',0),('CancelledCourses','Include')]
-            url = WEBSOC + urllib.parse.urlencode(fields)
-            # print(url)
-
-            sp = bs.BeautifulSoup(requests.get(url, headers=HEADERS).content, 'lxml')
-
-            for row in sp.find_all('tr'):
-                cells = row.find_all('td')
-                if len(cells) > 14 and cells[0].text in statuses:
-                    code = cells[0].text
-                    statuses[code] = cells[-1].text
-
-        return statuses
 
     statuses = fetch_statuses(emails.keys())
    # print(statuses)
@@ -99,14 +98,13 @@ while 1:
         print('emails')
         for house in emails[code]:
             to_email = Email(house)
-            subject = "[AntAlmanac Notifications] Space Just Opened Up"
             content = Content("text/html",'<html><p>'+msg+'</p><p>Here\'s WebReg while we\'re at it: <a href="https://www.reg.uci.edu/registrar/soc/webreg.html" target="_blank">WebReg</a></p><p>You have been removed from this watchlist; to add yourself again, please visit <a href="https://antalmanac.com" target="_blank">AntAlmanac</a> or click on <a href="{}/email/{}/{}/{}" target="_blank">this link</a></p><p>Also, was this notification correct? Were you able to add yourself? Please do let us know asap if there is anything that isn\'t working as it should be!!! <a href="https://goo.gl/forms/U8CuPs05DlIbrSfz2" target="_blank">Give (anonymous) feedback!</a></p><p>Yours sincerely,</p><p>Poor Peter\'s AntAlmanac</p></html>'.format(config.BASE_URL, code, urllib.parse.quote(names[code]), house))
-            mail = Mail(from_email, subject, to_email, content)
+            mail = Mail(from_email, EMAIL_SUBJECT, to_email, content)
             response = sg.client.mail.send.post(request_body=mail.get())
-            content = Content("text/html",'<html><p>'+msg+'</p><p>Here\'s WebReg while we\'re at it: <a href="https://www.reg.uci.edu/registrar/soc/webreg.html" target="_blank">WebReg</a></p><p>You have been removed from this watchlist; to add yourself again, please visit <a href="https://antalmanac.com" target="_blank">AntAlmanac</a> or click on {}/email/{}/{}/{}</p><p>Also, was this notification correct? Were you able to add yourself? Please do let us know asap if there is anything that isn\'t working as it should be!!! <a href="https://goo.gl/forms/U8CuPs05DlIbrSfz2" target="_blank">Give (anonymous) feedback!</a></p><p>Yours sincerely,</p><p>Poor Peter\'s AntAlmanac</p></html>'.format(config.BASE_URL, code, urllib.parse.quote(names[code]), house))
-            mail = Mail(from_email, subject, qa_email, content) #For quality assurance purposes
+            content = Content("text/html",'<html><p>'+msg+'</p><p>Add back: {}/email/{}/{}/{}</p></html>'.format(config.BASE_URL, code, urllib.parse.quote(names[code]), house))
+            mail = Mail(from_email, EMAIL_SUBJECT, qa_email, content) #For quality assurance purposes
             response = sg.client.mail.send.post(request_body=mail.get()) #For quality assurance
-            print(code)
+            # print(code)
 
         #send sms notifications
         print('sms')
@@ -116,23 +114,17 @@ while 1:
                 try:
                     long_url = '{}/sms/{}/{}/{}'.format(config.BASE_URL, code, urllib.parse.quote(names[code]), num)
                     sms_msg = 'AntAlmanac: ' + msg + 'To add back to watchlist: ' + shorten(long_url)
-                    print(sms_msg)
                     aws.publish(
                         PhoneNumber="+1"+num,
                         Message=sms_msg
                         )
-                    subject = "[AntAlmanac Notifications] SMS CC"
                     content = Content("text/html",sms_msg)
-                    mail = Mail(from_email, subject, qa_email, content) #For quality assurance purposes
+                    mail = Mail(from_email, "[AntAlmanac Notifications] SMS CC", qa_email, content) #For quality assurance purposes
                     response = sg.client.mail.send.post(request_body=mail.get()) #For quality assurance
-                    print("sms")
-                    print(code)
-                    print(num)
-                    print()
+                    # print(code)
                 except:
-                    subject = "[AntAlmanac ERROR] SMS Hit the Fan"
                     content = Content("text/html",'SOMETHING WENT WRONG:   '+sms_msg)
-                    mail = Mail(from_email, subject, qa_email, content) #For quality assurance purposes
+                    mail = Mail(from_email, "[AntAlmanac ERROR] SMS Hit the Fan", qa_email, content) #For quality assurance purposes
                     response = sg.client.mail.send.post(request_body=mail.get()) #For quality assurance
 
 

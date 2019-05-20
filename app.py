@@ -83,9 +83,9 @@ def add_sms(code, name, num):
     else: #already in the db
         msg = '{} was already on the sms watchlist for {} {}!'.format(num,code,name)
         return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
-    msg = '<html><body><h1 id=\"findme\">{} has been added to the sms watchlist for {} {}!</h1></body></html>'.format(num,code,name)
+    msg = '{} has been added to the sms watchlist for {} {}!'.format(num,code,name)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
 
 if __name__ == '__main__':
-    app.debug = True
+    # app.debug = True
     app.run()
