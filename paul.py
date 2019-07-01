@@ -146,17 +146,19 @@ while True:
 		if code not in courses:
 			courses[code] = None
 
+	print(len(courses))
+
 	# Dump courses so doggo knows what course info to fetch
 	try:
 		pickle.dump(courses, open('l.p', 'wb'))
-		print("dumping")
+		# print("dumping")
 	except:
 		print('Paul did not dump properly')
 		continue
 	# Load course statuses that doggo fetched
 	try:
 		statuses = pickle.load(open('s.p','rb'))
-		print("loading")
+		# print("loading")
 	except:
 		print('Paul did not load properly')
 		continue

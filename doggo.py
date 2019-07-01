@@ -9,12 +9,12 @@ TERM = '2019-92'
 WEBSOC = 'https://www.reg.uci.edu/perl/WebSoc?'
 
 def fetch_statuses(statuses):
-    lag = 0                                             # to check code runtime
-    counter = 0                                         # just used to take groups of 8 
+    # lag = 0                                             # to check code runtime
+    counter = 0                                         # just used to take groups of 8
     targets = list(statuses.keys())
     # Updates course statuses in groups of 8 (because websoc can't handle requests of more than 8 courses)
     while len(targets[counter*BATCH_SIZE:counter*BATCH_SIZE+BATCH_SIZE]) != 0:
-        old = time.time()                               # to check code runtime
+        # old = time.time()                               # to check code runtime
 
         # get status values for these codes
         fields = [('YearTerm',TERM),('CourseCodes',', '.join(targets[counter*BATCH_SIZE:counter*BATCH_SIZE+BATCH_SIZE])),('ShowFinals',0),('ShowComments',0),('CancelledCourses','Include')]
@@ -29,7 +29,7 @@ def fetch_statuses(statuses):
                 code = cells[0].text
                 statuses[code] = cells[-1].text
 
-        lag += (time.time()-old)                        # to check code runtime
+        # lag += (time.time()-old)                        # to check code runtime
         counter += 1
 
     #print('',lag)
@@ -37,20 +37,23 @@ def fetch_statuses(statuses):
 
 
 while True:
+    print('run')
     # Load courses to be updated ({code: None})
     try:
         l = pickle.load(open('l.p','rb'))
-        #print(l)
+        # print('loading')
     except:
         print('Doggo did not load properly')
         continue
 
+    print(len(l))
+
     s = fetch_statuses(l)
-    #print(s)
 
     # Dump updated course statuses
     try:
         pickle.dump(s, open('s.p','wb'))
+        # print('dumping')
     except:
         print('Doggo did not dump properly')
         continue
