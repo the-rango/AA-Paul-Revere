@@ -14,14 +14,6 @@ def fetch_statuses(targets):
     lag = 0
     counter = 0
     statuses = {}
-##    iter = targets.__iter__()
-##    for i in range(len(targets)//BATCH_SIZE + 1):
-##        codes = set()
-##        for _ in range(BATCH_SIZE):
-##            try:
-##                codes.add(next(iter))
-##            except: #Expecting a StopIteration
-##                break
 
     while len(targets[counter*BATCH_SIZE:counter*BATCH_SIZE+BATCH_SIZE]) != 0:
         # get status values for these codes

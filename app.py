@@ -125,7 +125,7 @@ def test_push(token):
 			"title": "AntAlmanac Test Notification",
 			"body": "This is a test push notification to make sure you can get it. Click for more details.",
 			"click_action": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-			"icon": "https://cdn.discordapp.com/attachments/413968179279298561/594737204899610633/LogoSquare.png"
+			"icon": "https://www.ics.uci.edu/~rang1/AntAlmanac/img/LogoSquareWhite.png"
 		},
 		"to": token
 	}

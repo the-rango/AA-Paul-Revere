@@ -65,14 +65,14 @@ def send_notifications(status_type, code, db):
 		click_link = course_url		# websoc link for the cancelled course
 	for token in tokens[code]:
 		fcm = "https://fcm.googleapis.com/fcm/send"
-		headers = {"Authorization": "key=AAAAStUbs2E:APA91bHyzSnm1WUfvBz6N7UCQ7RZDpxsestylIWKOu1TUVtnQNbB3900m-Kp0rV2D37Mp-7qUJhhfOAiUg3k1C0DtGVfu-pPNXTYqPCfQhGSPQyjO15BZis5b-lveGWpxMhdTu8M5lxJ",
+		headers = {"Authorization": config.PUSH_AUTHKEY,
 				   "Content-Type": "application/json"}
 		body = {
 			"notification": {
 				"title": "AntAlmanac Notifications",
 				"body": push_msg,
 				"click_action": click_link,
-				"icon": "https://cdn.discordapp.com/attachments/413968179279298561/594737204899610633/LogoSquare.png"
+				"icon": "https://www.ics.uci.edu/~rang1/AntAlmanac/img/LogoSquareWhite.png"
 			},
 			"to": token
 		}
@@ -140,8 +140,8 @@ while True:
 			nums[code] = course['nums']
 		if len(names[code]) != len(course['name']):
 			names[code] = course['name']
-		#if len(tokens[code]) != len(course['push']):			### uncomment when all courses in db are updated with 'push' !
-		#	tokens[code] = course['push']
+		if len(tokens[code]) != len(course['push']):			### uncomment when all courses in db are updated with 'push' !
+			tokens[code] = course['push']
 
 		if code not in courses:
 			courses[code] = None
