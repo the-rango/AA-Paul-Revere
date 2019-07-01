@@ -4,6 +4,7 @@ import urllib
 import pymongo
 import config
 import random
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -57,7 +58,7 @@ def add_email(code, name, email):
     name = urllib.parse.unquote(name)
 
     doc = db["queue"].find_one({"code": code})
-    
+
     if doc is None: #course not in db yet
         db["queue"].insert_one({"code": code, "name":name, "emails": [email], "nums": [], "push": []})
 
@@ -99,7 +100,7 @@ def add_push_notif(code, name, token):
     name = urllib.parse.unquote(name)
 
     doc = db["queue"].find_one({"code": code})
-    
+
     if doc is None: #course not in db yet
         db["queue"].insert_one({"code": code, "name":name, "emails": [], "nums": [], "push": [token]})
 
@@ -113,6 +114,22 @@ def add_push_notif(code, name, token):
 
     msg = '{} has been added to the push notification watchlist for {} {}!</h1></body></html>'.format(token, code, name)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
+
+@app.route("/testpush/<token>")
+def test_push(token):
+	fcm = "https://fcm.googleapis.com/fcm/send"
+	headers = {"Authorization": config.PUSH_AUTHKEY,
+			   "Content-Type": "application/json"}
+	body = {
+		"notification": {
+			"title": "AntAlmanac Test Notification",
+			"body": "This is a test push notification to make sure you can get it. Click for more details.",
+			"click_action": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+			"icon": "https://cdn.discordapp.com/attachments/413968179279298561/594737204899610633/LogoSquare.png"
+		},
+		"to": token
+	}
+	r = requests.post(fcm, data=json.dumps(body), headers=headers)
 
 if __name__ == '__main__':
     # app.debug = True
