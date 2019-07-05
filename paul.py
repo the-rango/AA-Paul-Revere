@@ -1,3 +1,13 @@
+#############################################
+# Paul does two things:
+# 1. Gets the watchlist from db
+# 2. Sends out notifications if needed
+#
+# In between the two, Paul sends his doggo
+# to go check if the courses on the watchlist
+# are open, during which time, Paul may
+# check the db again and send notifications
+
 import pymongo
 import urllib.parse
 import requests

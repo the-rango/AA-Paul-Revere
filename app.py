@@ -130,6 +130,7 @@ def test_push(token):
 		"to": token
 	}
 	r = requests.post(fcm, data=json.dumps(body), headers=headers)
+    return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(0), message='Token push test sent', credits=CREDITS[0])
 
 if __name__ == '__main__':
     # app.debug = True

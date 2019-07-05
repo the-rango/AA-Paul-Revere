@@ -1,3 +1,10 @@
+############################################
+# Doggo gets a list of courses to watch for
+# from its master, Paul, and then fetches
+# their status from webSOC, and then returns
+# those statuses to Paul
+
+
 import pickle
 import time
 import urllib.parse
