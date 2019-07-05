@@ -55,7 +55,10 @@ while True:
 
     print(len(l))
 
-    s = fetch_statuses(l)
+    try:
+        s = fetch_statuses(l)
+    except:
+        print('Doggo tripped!!')
 
     # Dump updated course statuses
     try:
