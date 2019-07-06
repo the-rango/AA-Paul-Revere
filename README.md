@@ -9,7 +9,7 @@ The bookkeeper is a Flask API that accepts requests to add courses to watchlist.
 It also includes an endpoint to send test push notifications to verify that the user is on a compatible device.
 
 #### Usage
-GET request to /<type>/<code>/<name>/<address>, where type is 'email', 'sms', or 'push', code is the 5 digit section code, name is the name of the course, and address is the email address, phone number of push token to be added to the database.
+GET request to /{type}/{code}/{name}/{address}, where type is 'email', 'sms', or 'push', code is the 5 digit section code, name is the name of the course, and address is the email address, phone number of push token to be added to the database.
 
 ## Dispatcher
 The dispatcher checks if the courses on the watchlist have opened, and if any has, it sends out the appropriate notifications.
