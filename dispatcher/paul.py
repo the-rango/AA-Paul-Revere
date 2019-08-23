@@ -154,7 +154,7 @@ while True:
 			tokens[code] = course['push']
 
 		if code not in courses:
-			courses[code] = None
+			courses[code] = "NA"
 
 	print(len(courses))
 
@@ -189,6 +189,8 @@ while True:
 		send_notifications("OPEN",code,db)
 	for code in wait_list:
 		send_notifications("Waitl",code,db)
-	for code in cancelled_list:
-		print('QUAN HELP ME! SOMETHING IS WRONG')
-		#send_notifications("None",code,db)
+	if len(cancelled_list) < 5:
+		for code in cancelled_list:
+			send_notifications("None",code,db)
+	else:
+		pass
