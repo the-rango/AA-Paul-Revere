@@ -150,6 +150,10 @@ def look_up(type,key):
     return jsonify(watchlist)
 
 
+def handler(json_input, context):
+    app.run()
+
+
 if __name__ == '__main__':
     # app.debug = True
     app.run()
