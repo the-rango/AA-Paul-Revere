@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import urllib
 import pymongo
@@ -53,6 +53,7 @@ CREDITS = [
     '''
 ]
 
+
 @app.route("/email/<code>/<name>/<email>")
 def add_email(code, name, email):
     lucky = random.randrange(0, len(CREDITS))
@@ -73,6 +74,7 @@ def add_email(code, name, email):
 
     msg = '{} has been added to the email watchlist for {} {}!</h1></body></html>'.format(email, code, name)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
+
 
 @app.route("/sms/<code>/<name>/<num>")
 def add_sms(code, name, num):
@@ -95,6 +97,7 @@ def add_sms(code, name, num):
     msg = '{} has been added to the sms watchlist for {} {}!'.format(num, code, name)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
 
+
 @app.route("/pushnotif/<code>/<name>/<token>")
 def add_push_notif(code, name, token):
     lucky = random.randrange(0, len(CREDITS))
@@ -116,6 +119,7 @@ def add_push_notif(code, name, token):
     msg = '{} has been added to the push notification watchlist for {} {}!</h1></body></html>'.format(token, code, name)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(lucky), message=msg, credits=CREDITS[lucky])
 
+
 @app.route("/testpush/<token>")
 def test_push(token):
     fcm = "https://fcm.googleapis.com/fcm/send"
@@ -132,6 +136,19 @@ def test_push(token):
         }
     r = requests.post(fcm, data=json.dumps(body), headers=headers)
     return render_template("landing.html", img_link = "https://www.ics.uci.edu/~rang1/PRL/bg_img/bg{}.jpg".format(0), message='Token push test sent', credits=CREDITS[0])
+
+
+@app.route("/lookup/<type>/<key>")
+def look_up(type,key):
+    watchlist = None
+    if type == 'email':
+        watchlist = [{"code":c['code'], "name": c['name']} for c in db["queue"].find({'emails': key})]
+    if type == 'sms':
+        watchlist = [{"code":c['code'], "name": c['name']} for c in db["queue"].find({'nums': key})]
+    if type == 'push':
+        watchlist = [{"code":c['code'], "name": c['name']} for c in db["queue"].find({'push': key})]
+    return jsonify(watchlist)
+
 
 if __name__ == '__main__':
     # app.debug = True
